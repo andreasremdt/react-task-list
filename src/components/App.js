@@ -3,6 +3,7 @@ import Header from "./Header";
 import TaskList from "./TaskList";
 import TaskForm from "./TaskForm";
 import "../css/App.css";
+import moment from "moment";
 
 class App extends React.Component {
   state = {
@@ -41,6 +42,27 @@ class App extends React.Component {
     }));
   }
 
+  getSortedTaskList() {
+    var tasks = this.state.tasks,
+        completed = [];
+
+    return tasks.filter(function filter(task) {
+      if (task.isCompleted) {
+        completed.push(task);
+      } else {
+        return task;
+      }
+    }).sort(function compare(a, b) {
+      if (moment(a.deadline).isBefore(b.deadline)) {
+        return -1;
+      } else if (moment(a.deadline).isAfter(b.deadline)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }).concat(completed);
+  }
+
   componentWillMount() {
     try {
       var tasks = JSON.parse(localStorage.getItem("tasks"));
@@ -60,7 +82,7 @@ class App extends React.Component {
       <React.Fragment>
         <Header tasks={this.state.tasks} handleOverlayToggle={this.handleOverlayToggle} />
         <TaskForm isVisible={this.state.overlayVisible} handleSubmit={this.handleSubmit} handleOverlayToggle={this.handleOverlayToggle} />
-        <TaskList tasks={this.state.tasks} handleTaskUpdate={this.handleTaskUpdate} handleTaskDelete={this.handleTaskDelete} />
+        <TaskList tasks={this.getSortedTaskList()} handleTaskUpdate={this.handleTaskUpdate} handleTaskDelete={this.handleTaskDelete} />
       </React.Fragment>
     );
   }
